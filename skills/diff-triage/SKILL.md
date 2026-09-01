@@ -1,25 +1,35 @@
 ---
 name: diff-triage
-description: Orders uncommitted changes for human review, highest-stakes first, and flags which low-risk changes can probably ship without human review. Use when the user wants a review order, a manual review queue, diff-triage, or to know which local changes can skip human review.
+description: Orders uncommitted changes per git repo for human review, highest-stakes first, and flags which low-risk changes can probably ship without human review. Use when the user wants a review order, a manual review queue, diff-triage, or to know which local changes can skip human review — including across more than one repo.
 ---
 
 # Diff-triage
 
 Read the highest-stakes, hardest-to-judge changes first. Later files get less attention.
 
-Queue only. Not findings, not approval.
+Queue only. Not findings, not approval. **One git work tree = one subagent = one report.** Never merge repos into one list.
 
-## 1. Collect
+## 1. Discover (orchestrator)
 
-Git repo required. Staged + unstaged + untracked:
+Every git work tree under the workspace (cwd, workspace roots, nested checkouts, submodules). Deduplicate by toplevel. Keep trees with staged, unstaged, or untracked changes. Omit clean trees. If none, stop.
+
+## 2. One subagent per repo (orchestrator)
+
+Spawn one `general-purpose` subagent per dirty tree, `cwd` = that toplevel, in parallel. Point it at this SKILL.md. It runs Collect through Skip bar for **that tree only** and returns one compact report. It must not discover other repos, spawn further subagents, or rank across repos.
+
+Print reports in toplevel-path order. Subagent fail → that repo is needs-human; do not fold it into another repo's list.
+
+## 3. Collect
+
+Staged + unstaged + untracked:
 
 - `git status --porcelain`
 - `git diff HEAD`
 - `git ls-files --others --exclude-standard` — read those files
 
-Stop if clean. Classify from the **diff**, not the path. Ignore generated/binary noise unless that file is the change. If this session wrote the diffs, mark **self-authored**. Huge diffs: sample hunks, lower confidence, say so.
+Classify from the **diff**, not the path. Ignore generated/binary noise unless that file is the change. If this session wrote the diffs, mark **self-authored**. Huge diffs: sample hunks, lower confidence, say so. Paths relative to this toplevel.
 
-## 2. Classify the change
+## 4. Classify the change
 
 Each path gets the **highest** tier any hunk reaches. Tag mixed. Path is a hint.
 
@@ -34,7 +44,7 @@ Each path gets the **highest** tier any hunk reaches. Tag mixed. Path is a hint.
 
 Two tiers → higher one. Domain+security → tag both; still first-attention. Untrusted IO is **security**, not plumbing.
 
-## 3. Cluster, then order
+## 5. Cluster, then order
 
 Walking all domain, then all security, splits a slice.
 
@@ -43,54 +53,36 @@ Walking all domain, then all security, splits a slice.
 3. Inside a cluster: domain, security, boundary, then that cluster's supporting.
 4. Orphans sit in their own tier.
 
-Warn if more than ~20 files.
+Warn if more than ~20 files (`>20` in the heading).
 
-## 4. Independent risk vet
+## 6. Risk and skip
 
-Spawn one `explore` subagent and wait. Put diffs and paths in the prompt or a file it can read — not your tiers or skip guesses. Do not ask it to run git.
+Assume human review is required. Label each change **HIGH** or **LOW**. Conservative on mixed files, self-authored code, and the never-skip list. Uncertainty → HIGH.
 
-It must assume human review is required. Return per change: **high-risk** or **low-risk** (one-line why); for low-risk, whether it can **probably ship without human review** (one-line why). Conservative on mixed files, self-authored code, and the never-skip list.
+**Never skip:** authn/authz/session, crypto/secrets, money, permissions, PII, schema/migrations, public API, concurrency/locking, default-on flags, untrusted input, or uncertainty.
 
-Subagent fail or disagreement → needs-human.
+**Probably skippable** only if all of: highest tier is **generic**, or **plumbing** that is comments / log-text / formatting only; LOW; no never-skip hit; not mixed with a higher tier.
 
-## 5. Never skip
+Say "skip", not approved. The human still owns the merge.
 
-Authn/authz/session, crypto/secrets, money, permissions, PII, schema/migrations, public API, concurrency/locking, default-on flags, untrusted input, or subagent uncertainty.
+## Output (one report per repo)
 
-## 6. Skip bar
-
-**Probably skippable** only if all of:
-
-- Highest tier is **generic**, or **plumbing** that is comments / log-text / formatting only
-- Subagent says low-risk and skip-ok
-- No never-skip hit
-- Not mixed with a higher tier
-
-Say "probably skippable". The human still owns the merge.
-
-## Output
+One slice heading, then a file list you can copy. No extra High-risk / Low-risk / Keep sections. Plain paths, no backticks.
 
 ```markdown
-# Diff-triage
+# <repo-dir> · N files · self-authored? · >20?
 
-Self-authored: yes/no
-Files: N (warn if >20)
+pricing  domain HIGH mixed
+- src/pricing.ts
+- src/api/refunds.ts
+- tests/pricing.test.ts
 
-## Read in this order
-1. **domain** `path` — why this tier; mixed if so
-   cluster: <slice> — also `a`, `b`
-2. …
+session  security HIGH
+- src/auth.ts
 
-## High-risk
-- `path` — why
-
-## Low-risk
-- `path` — why
-
-## Probably skippable without human review
-- `path` — why it clears the skip bar
-(or none)
-
-## Keep for human review
-- `path` — tier / never-skip / subagent / mixed
+Skip
+- README.md
+- docs/typo.md
 ```
+
+`Skip` with `- none` when empty. Heading uses the repo directory name. Paths relative to that repo.
