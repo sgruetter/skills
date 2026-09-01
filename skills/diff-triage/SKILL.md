@@ -50,7 +50,7 @@ Walking all domain, then all security, splits a slice.
 
 1. Cluster files of one slice (rule + boundary + its tests). Name the slice in the project's terms (CONTEXT.md if present).
 2. Order clusters by highest tier: domain > security > boundary > supporting (orphans) > generic > plumbing.
-3. Inside a cluster: domain, security, boundary, then that cluster's supporting.
+3. Inside a cluster: domain, security, boundary. Put each file's test immediately after that file. Other supporting (types, adapters, unpaired tests) after the paired files.
 4. Orphans sit in their own tier.
 
 Warn if more than ~20 files (`>20` in the heading).
@@ -67,22 +67,23 @@ Say "skip", not approved. The human still owns the merge.
 
 ## Output (one report per repo)
 
-One slice heading, then a file list you can copy. No extra High-risk / Low-risk / Keep sections. Plain paths, no backticks.
+One slice heading, then a file list you can copy. No extra High-risk / Low-risk / Keep sections. Each file: `filename · path` with path relative to repo root. No backticks.
 
 ```markdown
 # <repo-dir> · N files · self-authored? · >20?
 
 pricing  domain HIGH mixed
-- src/pricing.ts
-- src/api/refunds.ts
-- tests/pricing.test.ts
+- pricing.ts · src/pricing.ts
+- pricing.test.ts · tests/pricing.test.ts
+- refunds.ts · src/api/refunds.ts
+- refunds.test.ts · tests/refunds.test.ts
 
 session  security HIGH
-- src/auth.ts
+- auth.ts · src/auth.ts
 
 Skip
-- README.md
-- docs/typo.md
+- README.md · README.md
+- typo.md · docs/typo.md
 ```
 
-`Skip` with `- none` when empty. Heading uses the repo directory name. Paths relative to that repo.
+`Skip` with `- none` when empty. Heading uses the repo directory name.
