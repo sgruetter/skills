@@ -50,7 +50,7 @@ Walking all domain, then all security, splits a slice.
 
 1. Cluster files of one slice (rule + boundary + its tests). Name the slice in the project's terms (CONTEXT.md if present).
 2. Order clusters by highest tier: domain > security > boundary > supporting (orphans) > generic > plumbing.
-3. Inside a cluster: domain, security, boundary. Put each file's test immediately after that file. Other supporting (types, adapters, unpaired tests) after the paired files.
+3. Inside a cluster: domain, security, boundary. Put each file's test immediately after that file, indented one level. Other supporting (types, adapters, unpaired tests) after the paired files.
 4. Orphans sit in their own tier.
 
 Warn if more than ~20 files (`>20` in the heading).
@@ -74,9 +74,9 @@ One slice heading, then a file list you can copy. No extra High-risk / Low-risk 
 
 pricing  domain HIGH mixed
 - pricing.ts · src/pricing.ts
-- pricing.test.ts · tests/pricing.test.ts
+  - pricing.test.ts · tests/pricing.test.ts
 - refunds.ts · src/api/refunds.ts
-- refunds.test.ts · tests/refunds.test.ts
+  - refunds.test.ts · tests/refunds.test.ts
 
 session  security HIGH
 - auth.ts · src/auth.ts
