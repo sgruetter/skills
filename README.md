@@ -6,6 +6,7 @@ Agent skills for Product Engineering.
 
 - [top-down](skills/top-down/SKILL.md) — walks a change down from language to product to mechanism, locks each level, writes only that slice, and keeps CONTEXT.md and ADRs in sync as decisions lock.
 - [diff-triage](skills/diff-triage/SKILL.md) — orders uncommitted changes per git repo for human review, highest-stakes first, and flags which low-risk changes can probably ship without human review.
+- [lucid](skills/lucid/SKILL.md) — edits local code so a reader who wasn't here can follow it, without changing what it does.
 
 ## Attribution
 
