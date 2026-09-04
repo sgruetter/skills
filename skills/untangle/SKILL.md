@@ -1,10 +1,10 @@
 ---
-name: lucid
-description: Edit local code so a reader who wasn't here can follow it, without changing what it does. Use when the user says lucid, /lucid, or points at a file, function, hunk, or uncommitted session diff that's hard to follow. Not for architecture, TDD, formatting, or prose.
+name: untangle
+description: Edit local code so a reader who wasn't here can follow it, without changing what it does. Use when the user says untangle, /untangle, or points at a file, function, hunk, or uncommitted session diff that's hard to follow. Not for architecture, TDD, formatting, or prose.
 argument-hint: "file, function, or hunk"
 ---
 
-# Lucid
+# Untangle
 
 Make this readable to someone who wasn't here. Don't change what it does — including the ugly cases and what callers depend on.
 
